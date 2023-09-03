@@ -36,17 +36,38 @@
       </div>
       <add-button
       :disabled="disabled"
-      @click="add()"
+        @click="openPopup"
         type="button"
         class="my-4"/>
     </section>
+    <modal-window 
+    @ok="add()"
+    :is-open="showModal"
+    @close="showModal = false" 
+    v-if="showModal">
+      <template #header>
+        Проверьте!
+      </template>
+      <template #body>
+        Вы уверены, что хотите добавить {{ticker}} ?
+      </template>
+      <template #footer="{confirm}">
+      Напишите
+      <input :placeholder="$options.CONFIRMATION_TEXT" v-model="confirmation">
+      &nbsp;
+      <button @click="confirm" :disabled=isConfirmationCorrect>OK</button>
+      </template>
+    </modal-window>
 </template>
 <script>
 import AddButton from './AddButton.vue'
+import ModalWindow from './ModalWindow.vue'
+
 
 export default{
     components: {
-    AddButton
+    AddButton,
+    ModalWindow
     },
     data(){
         return {
@@ -54,6 +75,7 @@ export default{
         tickerError: false,
         showHintVar: false,
         tickers:[],
+        showModal: false,
         }
     },
     props:{
@@ -61,16 +83,27 @@ export default{
             type: Boolean,
             required: false,
             default: false,
-        }
+        },
     },
+    CONFIRMATION_TEXT:'ПОДТВЕРЖДАЮ',
     emits:{
-    "add-ticker":value => typeof value === "string" && value.length > 0
+    "add-ticker":value => typeof value === "string" && value.length > 0,
+    },
+    computed: {
+      isConfirmationCorrect(){
+        return this.confirmation===this.$options.CONFIRMATION_TEXT
+      }
     },
     methods:{
+      openPopup(){
+        this.showModal = true
+        this.confirmation=''
+      },
         add() {
         if (this.ticker.length === 0) {
             return
         }
+        this.showModal = false
         this.$emit("add-ticker", this.ticker)
         this.ticker=''
     },
@@ -83,3 +116,4 @@ export default{
     },
     }
 </script>
+
