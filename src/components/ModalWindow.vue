@@ -1,5 +1,5 @@
 <template id="modal-template">
-    <div class="modal-mask" @click=close>
+    <div class="modal-mask" @click=close v-if="isOpen">
       <div class="modal-wrapper" >
         <div class="modal-container" @click.stop>
           <div class="modal-header">
@@ -14,10 +14,10 @@
           </div>
           <div class="modal-footer">
             <slot name="footer" :confirm="confirm">
-            <button class="modal-default-button" @click=close>
+            <button class="modal-default-button" @click="close">
           Отмена
       </button>
-      <button class="modal-default-button" @click=confirm>
+      <button class="modal-default-button" @click="confirm">
             Ок
       </button>
             </slot>
@@ -29,16 +29,22 @@
 
 <script>
 export default {
-    props:{
-        isOpen:{
-            type: Boolean,
-            required: true,
-        }
+    data(){
+      return {
+        isOpen: false
+      }
     },
-    emits:{
-    "ok": null,
-    "close": null
-    },
+    PopupController:null,
+    // props:{
+    //     isOpen:{
+    //         type: Boolean,
+    //         required: true,
+    //     }
+    // },
+    // emits:{
+    // "ok": null,
+    // "close": null
+    // },
     mounted(){
         document.addEventListener('keyup', this.handleKeyup)
     },
@@ -52,18 +58,37 @@ export default {
                 this.$emit('close')
             }
     },
-        close(){
-            this.$emit('close')
-        },
-        confirm(){
-            this.$emit('ok')
-        }
+    open(){
+      let resolve;
+      let reject;
+      const popupPromise = new Promise((ok, fail)=>{
+        resolve = ok
+        reject = fail
+      })
+      this.$options.PopupController = {resolve, reject}
+      this.isOpen = true
+      return popupPromise
+    },
+    close(){
+      this.$options.PopupController.resolve(true)
+      this.isOpen = false
+    },
+    confirm(){
+      this.$options.PopupController.resolve(false)
+      this.isOpen = false
+    }
+        // close(){
+        //     this.$emit('close')
+        // },
+        // confirm(){
+        //     this.$emit('ok')
+        // }
     }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
 
 .modal-mask {
   position: fixed;

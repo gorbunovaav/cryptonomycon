@@ -40,11 +40,7 @@
         type="button"
         class="my-4"/>
     </section>
-    <modal-window 
-    @ok="add()"
-    :is-open="showModal"
-    @close="showModal = false" 
-    v-if="showModal">
+    <modal-window ref="confirmationPopup">
       <template #header>
         Проверьте!
       </template>
@@ -55,13 +51,15 @@
       Напишите
       <input :placeholder="$options.CONFIRMATION_TEXT" v-model="confirmation">
       &nbsp;
-      <button @click="confirm" :disabled=isConfirmationCorrect>OK</button>
+      <button @click="confirm" :disabled=!isConfirmationCorrect>OK</button>
       </template>
     </modal-window>
 </template>
+  defineExpose({open})
 <script>
 import AddButton from './AddButton.vue'
 import ModalWindow from './ModalWindow.vue'
+
 
 
 export default{
@@ -76,8 +74,10 @@ export default{
         showHintVar: false,
         tickers:[],
         showModal: false,
+        confirmation:"",
         }
     },
+    // expose: ['open'],
     props:{
         disabled:{
             type: Boolean,
@@ -95,9 +95,15 @@ export default{
       }
     },
     methods:{
-      openPopup(){
-        this.showModal = true
+      async openPopup(){
         this.confirmation=''
+        const popupResult = await this.$refs.confirmationPopup.open();
+        if (popupResult){
+          alert('IT WORKS!')
+          // this.add()
+        }
+        // this.showModal = true
+        // this.confirmation=''
       },
         add() {
         if (this.ticker.length === 0) {
